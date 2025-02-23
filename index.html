@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking-Tails - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: url('Tadoba-1.jpeg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 100px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required><br>
+            <input type="password" id="password" placeholder="Password" required><br>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxsM_AKK8RH3CKitwfyGdDMd6B73G6RKg",
+            authDomain: "tracking-tails.firebaseapp.com",
+            databaseURL: "https://tracking-tails-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tracking-tails",
+            storageBucket: "tracking-tails.firebasestorage.app",
+            messagingSenderId: "660337242147",
+            appId: "1:660337242147:web:372275556d47d7fe9ec196",
+            measurementId: "G-WETDDXNW79"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+
+                    signInWithEmailAndPassword(auth, email, password)
+                        .then((userCredential) => {
+                            console.log('User logged in:', userCredential.user);
+                            alert('Login successful!');
+                            window.location.replace('SelectTail.html'); // Redirect to selecttail.html and replace history
+                        })
+                        .catch((error) => {
+                            console.error('Error logging in:', error);
+                            alert('Error logging in: ' + error.message);
+                        });
+                });
+            })
+            .catch((error) => {
+                console.error('Error setting persistence:', error);
+            });
+    </script>
+</body>
+</html>
