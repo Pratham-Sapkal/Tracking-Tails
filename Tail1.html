@@ -5,53 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking-Tails</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background: url('imaget.jpeg') no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .header {
-            margin-top: 20px;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            padding: 10px;
-            width: 15%;
-        }
-        .content {
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            margin-top: 20px;
-        }
-        .container1 {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            width: 30%;
-            height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        #map {
-            border-radius: 10px;
-            width: 60%;
-            height: 550px;
-        }
-        h1 {
-            color: #00c90a;
-        }
-        p {
-            font-size: 1.2em;
-        }
+       body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background: url('imaget.jpeg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.header {
+    margin-top: 20px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    width: 90%;
+    max-width: 400px;
+}
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 800px;
+    margin-top: 20px;
+}
+.container1 {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+}
+#map {
+    border-radius: 10px;
+    width: 100%;
+    height: 550px;
+}
+h1 {
+    color: #00c90a;
+}
+p {
+    font-size: 1.2em;
+}
+        @media (min-width: 600px) {
+    .content {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .container1 {
+        width: 30%;
+        margin-bottom: 0;
+    }
+    #map {
+        width: 60%;
+    }
+}
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
