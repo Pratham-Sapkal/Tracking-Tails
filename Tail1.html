@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking-Tails</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: url('imaget.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            margin-top: 20px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            width: 15%;
+        }
+        .content {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin-top: 20px;
+        }
+        .container1 {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 30%;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        #map {
+            border-radius: 10px;
+            width: 60%;
+            height: 550px;
+        }
+        h1 {
+            color: #00c90a;
+        }
+        p {
+            font-size: 1.2em;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Tail1-Data</h1>
+    </div>
+    <div class="content">
+        <div class="container1">
+            <p>Temperature: <span id="temperature">Loading...</span> °C</p>
+            <p>Humidity: <span id="humidity">Loading...</span> %</p>
+            <p>Latitude: <span id="latitude">Loading...</span></p>
+            <p>Longitude: <span id="longitude">Loading...</span></p>
+        </div>
+        <div id="map"></div>
+    </div>
+    <audio id="alarm1" src="alarm1.wav" preload="auto"></audio>
+    <audio id="alarm2" src="alarm2.wav" preload="auto"></audio>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script type="module">
+        // Import the necessary Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxsM_AKK8RH3CKitwfyGdDMd6B73G6RKg",
+            authDomain: "tracking-tails.firebaseapp.com",
+            databaseURL: "https://tracking-tails-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tracking-tails",
+            storageBucket: "tracking-tails.firebasestorage.app",
+            messagingSenderId: "660337242147",
+            appId: "1:660337242147:web:372275556d47d7fe9ec196",
+            measurementId: "G-WETDDXNW79"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // DOM Elements
+        const tempElement = document.getElementById("temperature");
+        const humidityElement = document.getElementById("humidity");
+        const latitudeElement = document.getElementById("latitude");
+        const longitudeElement = document.getElementById("longitude");
+        const alarm1 = document.getElementById("alarm1");
+        const alarm2 = document.getElementById("alarm2");
+
+
+        // Initialize Leaflet map
+        const map = L.map('map').setView([0, 0], 15); // Default position before data loads
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a marker to the map
+        const marker = L.marker([0, 0]).addTo(map);
+
+        
+
+        // Define a geofence (circle)
+        let geofenceCircle;
+       
+
+        // Check if the marker is within the geofence
+        function checkGeofence(position) {
+            const distance = map.distance(position, geofenceCircle.getLatLng());
+            if (distance > geofenceCircle.getRadius()) {
+                console.log("Marker is outside the geofence");
+                alarm2.play();
+                alert("Marker is outside the geofence!");
+                alarm2.pause();
+                alarm2.currentTime = 0;
+            } else if (distance >= geofenceCircle.getRadius() - 50) {
+                console.log("Marker is close to the geofence");
+                alarm1.play();
+                alert("Marker is close to the geofence!");
+                alarm1.pause();
+                alarm1.currentTime = 0;
+            } else {
+                console.log("Marker is inside the geofence");
+            }
+        }
+
+        // Firestore document paths
+        const trackDoc = doc(db, "Track", "Tail1");
+
+        // Fetch and display real-time data
+        onSnapshot(trackDoc, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const data = docSnapshot.data();
+                console.log("Fetched data:", data); // Log the fetched data
+                const temperature = parseFloat(data.Temperature);
+                const humidity = parseFloat(data.Humidity);
+                const latitude = parseFloat(data.Latitude);
+                const longitude = parseFloat(data.Longitude);
+                if (!isNaN(temperature) && !isNaN(humidity)) {
+                    tempElement.textContent = temperature.toFixed(2);
+                    humidityElement.textContent = humidity.toFixed(2);
+                } else {
+                    console.error("Temperature or Humidity is not a number!", data);
+                    tempElement.textContent = "N/A";
+                    humidityElement.textContent = "N/A";
+                }
+                if (!isNaN(latitude) && !isNaN(longitude)) {
+                    latitudeElement.textContent = latitude.toFixed(6);
+                    longitudeElement.textContent = longitude.toFixed(6);
+                    const newPos = [latitude, longitude];
+                    marker.setLatLng(newPos);
+                    map.setView(newPos, 15);
+                
+                    if (geofenceCircle) {
+                        map.removeLayer(geofenceCircle);
+                    }
+                     geofenceCircle = L.circle([19.120609, 72.854820], {
+                        color: 'green',
+                        fillColor: '#00c90a',
+                        fillOpacity: 0.3,
+                        radius: 100 // in meters
+                    }).addTo(map);              
+                    // Check if the marker is within the geofence
+                    checkGeofence(newPos);
+                } else {
+                    console.error("Latitude or Longitude is not a number!", data);
+                    latitudeElement.textContent = "N/A";
+                    longitudeElement.textContent = "N/A";
+                }
+            } else {
+                console.error("No such document found in Firestore!");
+                tempElement.textContent = "N/A";
+                humidityElement.textContent = "N/A";
+                latitudeElement.textContent = "N/A";
+                longitudeElement.textContent = "N/A";
+            }
+        }, (error) => {
+            console.error("Error fetching document: ", error);
+            tempElement.textContent = "Error";
+            humidityElement.textContent = "Error";
+            latitudeElement.textContent = "Error";
+            longitudeElement.textContent = "Error";
+        });
+    </script>
+</body>
+</html>
