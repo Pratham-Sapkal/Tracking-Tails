@@ -54,7 +54,19 @@
         p {
             font-size: 1.2em;
         }
-
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #00c90a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #009a07;
+        }
         @media (min-width: 768px) {
             .content {
                 flex-direction: row;
@@ -88,6 +100,7 @@
             <p>Humidity: <span id="humidity">Loading...</span> %</p>
             <p>Latitude: <span id="latitude">Loading...</span></p>
             <p>Longitude: <span id="longitude">Loading...</span></p>
+            <button onclick="location.href='historyT1.html'">View History</button>
         </div>
         <div id="map"></div>
     </div>
@@ -123,7 +136,6 @@
         const alarm1 = document.getElementById("alarm1");
         const alarm2 = document.getElementById("alarm2");
 
-
         // Initialize Leaflet map
         const map = L.map('map').setView([0, 0], 15); // Default position before data loads
 
@@ -135,11 +147,8 @@
         // Add a marker to the map
         const marker = L.marker([0, 0]).addTo(map);
 
-        
-
         // Define a geofence (circle)
         let geofenceCircle;
-       
 
         // Check if the marker is within the geofence
         function checkGeofence(position) {
@@ -195,7 +204,7 @@
                         color: 'green',
                         fillColor: '#00c90a',
                         fillOpacity: 0.3,
-                        radius: 100 // in meters
+                        radius: 50 // in meters
                     }).addTo(map);              
                     // Check if the marker is within the geofence
                     checkGeofence(newPos);
