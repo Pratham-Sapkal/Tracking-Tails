@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tail2 History</title>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Leaflet.js -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      background: url('imaget.jpeg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .transparent-container {
+      margin-top: 20px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      padding: 10px;
+      width: 90%;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h2 {
+      text-align: center;
+      color: #00c90a;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .map-container, .chart-container {
+      flex: 1;
+      min-width: 300px;
+      margin: 20px;
+    }
+    #map {
+      height: 975px;
+      width: 100%;
+      border-radius: 10px;
+      max-width: 800px;
+    }
+    .chart {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+      background-color: white; /* Add white background */
+      padding: 10px; /* Add padding */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+      border-radius: 8px; /* Add rounded corners */
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+        flex-direction: row;
+                justify-content: space-between;
+                margin-left: auto;
+                margin-right: auto;
+      }
+      #map {
+        height: 300px;
+        width: 100%;
+      }
+      .chart {
+        width: 100%;
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="transparent-container">
+  <h2>Tail2 History</h2>
+</div>
+
+<div class="container">
+  <div class="chart-container">
+    <div class="transparent-container">
+      <h2>Temperature Graph</h2>
+    </div>
+    <div class="chart">
+      <canvas id="temperatureChart"></canvas>
+    </div>
+    <div class="transparent-container">
+      <h2>Humidity Graph</h2>
+    </div>
+    <div class="chart">
+      <canvas id="humidityChart"></canvas>
+    </div>
+  </div>
+  <div class="map-container">
+    <div class="transparent-container">
+      <h2>Location on Map</h2>
+    </div>
+    <div id="map"></div>
+  </div>
+</div>
+
+<script>
+  // Fetch data from Google Sheets (published URL)
+  async function fetchData() {
+    const response = await fetch(
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQm0Me6fyKspwM2ipEdA6nWjCf754yKu915pyHUz2RRus04ysHuarzKlK1XI9OsfkkSsy1i__I-A0r/pub?gid=965027122&single=true&output=csv"
+    );
+    const data = await response.text();
+    const rows = data.split("\n").slice(1);
+    
+    const timestamps = [];
+    const temperatures = [];
+    const humidities = [];
+    const latitudes = [];
+    const longitudes = [];
+
+    rows.forEach(row => {
+      const cols = row.split(",");
+      const timestamp = cols[0];
+      const temperature = parseFloat(cols[1]);
+      const humidity = parseFloat(cols[2]);
+      const latitude = parseFloat(cols[3]);
+      const longitude = parseFloat(cols[4]);
+
+      if (temperature <= 50 && humidity <= 60) {
+        timestamps.push(timestamp);
+        temperatures.push(temperature);
+        humidities.push(humidity);
+        latitudes.push(latitude);
+        longitudes.push(longitude);
+      }
+    });
+
+    const latestTimestamps = timestamps.slice(-20);
+    const latestTemperatures = temperatures.slice(-20);
+    const latestHumidities = humidities.slice(-20);
+
+    plotTemperatureGraph(latestTimestamps, latestTemperatures);
+    plotHumidityGraph(latestTimestamps, latestHumidities);
+    
+    plotMap(latitudes, longitudes, timestamps);
+  }
+
+  function plotTemperatureGraph(timestamps, temperatures) {
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: timestamps,
+        datasets: [
+          {
+            label: 'Temperature (°C)',
+            data: temperatures,
+            borderColor: 'red',
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            borderWidth: 2,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Timestamp'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Temperature (°C)'
+            },
+            min: 0,
+            max: 50
+          }
+        }
+      }
+    });
+  }
+
+  function plotHumidityGraph(timestamps, humidities) {
+    const ctx = document.getElementById('humidityChart').getContext('2d');
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: timestamps,
+        datasets: [
+          {
+            label: 'Humidity (%)',
+            data: humidities,
+            borderColor: 'blue',
+            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+            borderWidth: 2,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Timestamp'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Humidity (%)'
+            },
+            min: 20,
+            max: 90
+          }
+        }
+      }
+    });
+  }
+
+  function plotMap(latitudes, longitudes, timestamps) {
+    const map = L.map('map').setView([latitudes[latitudes.length - 1], longitudes[longitudes.length - 1]], 12);
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for each data point
+    const latLngs = [];
+    for (let i = 0; i < latitudes.length; i++) {
+      if (!isNaN(latitudes[i]) && !isNaN(longitudes[i])) {
+        const latLng = [latitudes[i], longitudes[i]];
+        latLngs.push(latLng);
+        L.marker(latLng)
+          .addTo(map)
+          .bindPopup(`Timestamp: ${timestamps[i]}<br>Lat: ${latitudes[i]}<br>Lon: ${longitudes[i]}`)
+          .openPopup();
+      }
+    }
+
+    // Add polyline to show direction
+    L.polyline(latLngs, { color: 'blue' }).addTo(map);
+
+  }
+
+  // Fetch data and update every 15 seconds
+  fetchData();
+  setInterval(fetchData, 15000);
+</script>
+
+</body>
+</html>
